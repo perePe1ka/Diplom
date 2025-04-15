@@ -1,0 +1,30 @@
+spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: 5672
+    username: guest
+    password: guest
+storage:
+  path: /files/documents
+
+google:
+  sheet:
+    id: 1Gj0VeArhIkfL2XETVpTdRyfDSxRgcOUxLA0FQp-u4S4
+  creds: classpath:secret/key.json
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    enable:
+      # базовые HTTP-метрики (latency, count)
+      http.server.requests: true
+      # метрики JVM (память, сборки мусора)
+      jvm.memory.used: true
+      jvm.gc.max.data.size: true
+
+logging:
+  level:
+    ru.vladuss.documentgeneration: DEBUG
