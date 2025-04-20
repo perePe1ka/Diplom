@@ -1,0 +1,45 @@
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: 6379
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      use-key-prefix: true
+  datasource:
+    password: 1234
+    url: jdbc:postgresql://postgres:5432/integration
+    username: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+integration:
+  vk:
+    access-token: 2e49cd812e49cd812e49cd81062d79a0f422e492e49cd814646265f9522ad869178c9ad
+    api-version: 5.191
+    group-id: 122622948
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    enable:
+      http.server.requests: true
+      jvm.memory.used: true
+      jvm.gc.max.data.size: true
+      cache.gets: true
+      cache.puts: true
+      cache.evictions: true
+
+logging:
+  level:
+    ru.vladuss.integrationservice: DEBUG
