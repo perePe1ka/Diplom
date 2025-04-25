@@ -1,0 +1,42 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  application:
+    name: interaction-service
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/interaction_db
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    enable:
+      # базовые HTTP-метрики (latency, count)
+      http.server.requests: true
+      # метрики JVM (память, сборки мусора)
+      jvm.memory.used: true
+      jvm.gc.max.data.size: true
+      # кэш (только для тех сервисов, где он есть)
+      cache.gets: true
+      cache.puts: true
+      cache.evictions: true
+
+logging:
+  level:
+    ru.vladuss.informantservice: DEBUG
+
