@@ -1,12 +1,11 @@
 package ru.vladuss.informantservice.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.vladuss.informantservice.entity.Faq;
-import ru.vladuss.informantservice.service.FaqService;
+import ru.vladuss.informantservice.service.impl.FaqServiceImpl;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,9 +16,9 @@ public class FaqController {
 
     private static final Logger log = LoggerFactory.getLogger(FaqController.class);
 
-    private final FaqService service;
+    private final FaqServiceImpl service;
 
-    public FaqController(FaqService service) {
+    public FaqController(FaqServiceImpl service) {
         this.service = service;
     }
 

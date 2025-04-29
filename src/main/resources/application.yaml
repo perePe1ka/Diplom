@@ -19,6 +19,17 @@ spring:
       hibernate:
         format_sql: true
 
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${CACHE_TTL_MINUTES:10}m
+redis:
+  host: ${REDIS_HOST:redis}
+  port: ${REDIS_PORT:6379}
+cache:
+  ttl:
+    minutes: ${CACHE_TTL_MINUTES:10}
+
 management:
   endpoints:
     web:
@@ -26,12 +37,12 @@ management:
         include: health,info,prometheus,metrics
   metrics:
     enable:
-      # базовые HTTP-метрики (latency, count)
+      # базовые HTTP-метрики
       http.server.requests: true
-      # метрики JVM (память, сборки мусора)
+      # метрики JVM
       jvm.memory.used: true
       jvm.gc.max.data.size: true
-      # кэш (только для тех сервисов, где он есть)
+      # кэш
       cache.gets: true
       cache.puts: true
       cache.evictions: true

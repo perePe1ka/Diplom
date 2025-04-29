@@ -1,7 +1,6 @@
 <configuration>
   <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
     <http>
-      <!-- правильный плейсхолдер с дефолтом "loki" -->
       <url>http://${LOKI_HOST:-loki}:3100/loki/api/v1/push</url>
       <batch>1000</batch>
       <timeoutMs>5000</timeoutMs>

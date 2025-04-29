@@ -1,12 +1,11 @@
 package ru.vladuss.informantservice.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.vladuss.informantservice.entity.Event;
-import ru.vladuss.informantservice.service.EventService;
+import ru.vladuss.informantservice.service.impl.EventServiceImpl;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,9 +16,9 @@ public class EventController {
 
     private static final Logger log = LoggerFactory.getLogger(EventController.class);
 
-    private final EventService service;
+    private final EventServiceImpl service;
 
-    public EventController(EventService service) {
+    public EventController(EventServiceImpl service) {
         this.service = service;
     }
 
