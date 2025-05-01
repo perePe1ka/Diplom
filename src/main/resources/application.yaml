@@ -1,0 +1,63 @@
+server:
+  port: 8080
+
+spring:
+  rabbitmq:
+    template:
+      reply-timeout: 45000
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: 5672
+    username: guest
+    password: guest
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        - id: posts-simple
+          uri: ${POST_URI:http://integration-service:8082}
+          predicates:
+            - Path=/api/v1/posts/simple
+
+        - id: informant-faqs
+          uri: ${INFORMANT_URI:http://informant-service:8083}
+          predicates:
+            - Path=/api/v1/faqs/**
+
+
+        - id: informant-events
+          uri: ${INFORMANT_URI:http://informant-service:8083}
+          predicates:
+            - Path=/api/v1/events/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    enable:
+      # базовые HTTP-метрики (latency, count)
+      http.server.requests: true
+      # метрики JVM (память, сборки мусора)
+      jvm.memory.used: true
+      jvm.gc.max.data.size: true
+
+logging:
+  level:
+    ru.vladuss.apigateway: DEBUG
+
+
+
+
