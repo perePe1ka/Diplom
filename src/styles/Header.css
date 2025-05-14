@@ -1,0 +1,88 @@
+:root {
+    --primary: #e84444;
+    --primary-dark: #c73232;
+    --header-h: 72px;
+}
+
+/* ─── хедер ─────────────────────────────────────────────── */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    height: var(--header-h);
+    padding: 0 24px;
+    background: var(--card-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .06);
+    transition: background .25s;
+}
+
+/* ─── рычаг темы ─── */
+.header-toggle {
+    width: 46px;
+    height: 24px;
+    border-radius: 14px;
+    background: #cfcfcf;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    cursor: pointer;
+    transition: .25s background;
+}
+
+.header-toggle-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    transition: .25s transform;
+}
+
+.dark .header-toggle {
+    background: #555;
+}
+
+.dark .header-toggle-thumb {
+    transform: translateX(22px);
+}
+
+/* ─── навигация (по центру) ─── */
+.header-nav {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    font-weight: 600;
+    font-size: 17px;
+}
+
+.header-nav a {
+    position: relative;
+    text-decoration: none;
+    color: var(--primary);
+    transition: color .2s;
+}
+
+.header-nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 2px;
+    background: var(--primary);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .25s;
+}
+
+.header-nav a:hover::after,
+.header-nav a.active::after {
+    transform: scaleX(1);
+}

@@ -1,0 +1,18 @@
+.about-page {
+    max-width: 800px;
+    margin: 48px auto;
+    padding: 0 16px;
+    font-family: sans-serif;
+    color: var(--text);
+}
+
+.about-page h1 {
+    font-size: 28px;
+    margin-bottom: 24px;
+}
+
+.about-page p {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
