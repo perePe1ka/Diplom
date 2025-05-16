@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import api                      from "../api/gateway";
+import api   from "../api/gateway";
+import log   from "../observability/logger.js";
+import { inc } from "../observability/metrics.js";
 
 export default function Faqs() {
     const [faqs, setFaqs]   = useState([]);
@@ -12,7 +14,11 @@ export default function Faqs() {
             .catch(e => setErr(e.message));
     }, []);
 
-    const toggle = id => setOpen(o => ({ ...o, [id]: !o[id] }));
+    const toggle = id=>{
+        setOpen(o=>({ ...o, [id]: !o[id] }));
+        inc('faq_toggle_total');
+        log.debug('FAQ toggle', { id, open: !open[id] });
+    };
 
     if (err) return <p style={{ color: "red" }}>Ошибка: {err}</p>;
 

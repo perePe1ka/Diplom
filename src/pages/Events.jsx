@@ -3,39 +3,41 @@ import FullCalendar          from "@fullcalendar/react";
 import dayGridPlugin         from "@fullcalendar/daygrid";
 import interactionPlugin     from "@fullcalendar/interaction";
 import ruLocale              from "@fullcalendar/core/locales/ru";
-import api                   from "../api/gateway";
-import "../styles/eventsCalendar.css";
 
-export default function Events() {
+import api    from "../api/gateway";
+import log    from "../observability/logger.js";
+import { inc } from "../observability/metrics.js";
+
+export default function Events(){
     const [events, setEvents] = useState([]);
-    const [error,  setError]  = useState(null);
+    const [err, setErr]       = useState(null);
 
-    useEffect(() => {
-        api.get("/api/v1/events")
-            .then(data => {
-                const ev = data.map(e => ({
+    useEffect(()=>{
+        api.get('/api/v1/events')
+            .then(list=>{
+                const ev = list.map(e=>({
                     id   : e.id,
                     title: e.title,
                     start: e.startsAt,
                     end  : e.endsAt,
-                    extendedProps:{
-                        desc: e.description,
-                        loc : e.location
-                    }
+                    extendedProps:{ desc:e.description, loc:e.location }
                 }));
                 setEvents(ev);
+                inc('events_fetch_ok_total', {}, ev.length);
+                log.info('Events fetched', { count: ev.length });
             })
-            .catch(err => setError(err.message));
-    }, []);
+            .catch(e=>{
+                setErr(e.message);
+                inc('events_fetch_err_total');
+                log.error('Events fetch error', { msg: e.message });
+            });
+    },[]);
 
-    if (error)
-        return <p style={{color:"red",textAlign:"center"}}>Ошибка: {error}</p>;
+    if(err) return <p style={{color:'red'}}>Ошибка: {err}</p>;
 
     return (
         <main>
-            <h2 style={{textAlign:"center",marginTop:32}}>
-                Календарь мероприятий
-            </h2>
+            <h2 style={{textAlign:'center',marginTop:32}}>Календарь мероприятий</h2>
 
             <FullCalendar
                 plugins={[dayGridPlugin, interactionPlugin]}
@@ -43,13 +45,11 @@ export default function Events() {
                 initialView="dayGridMonth"
                 height="auto"
                 dayMaxEventRows={3}
-                headerToolbar={{
-                    left  : "prev,next today",
-                    center: "title",
-                    right : ""
-                }}
+                headerToolbar={{ left:"prev,next today", center:"title", right:"" }}
                 events={events}
-                eventClick={info => {
+                eventClick={info=>{
+                    inc('event_click_total');
+                    log.info('Event click', { id: info.event.id });
                     const {title, extendedProps} = info.event;
                     alert(`${title}\n\n${extendedProps.desc}\n\n📍 ${extendedProps.loc}`);
                 }}

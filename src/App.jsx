@@ -1,45 +1,56 @@
-import {BrowserRouter, Outlet, Route, Routes} from "react-router-dom";
-import {createContext, useEffect, useMemo, useReducer, useState} from "react";
+import {BrowserRouter, Outlet, Route, Routes,} from 'react-router-dom';
+import {createContext, useEffect, useMemo, useReducer, useState,} from 'react';
 
-import Header from "./components/Header";
-import Footer from "./components/Footer.jsx";
+import './observability/metrics.js'; // side-effect: сбор метрик
+import log from './observability/logger.js';
 
-import Home from "./pages/Home";
-import Events from "./pages/Events";
-import About from "./pages/About.jsx";
-import Faqs from "./pages/Faqs";
-import Statement from "./pages/Statement";
+import Header from './components/Header';
+import Footer from './components/Footer.jsx';
+
+import Home from './pages/Home';
+import Events from './pages/Events';
+import About from './pages/About.jsx';
+import Faqs from './pages/Faqs';
+import Statement from './pages/Statement';
 
 export const ThemeContext = createContext();
 export const DummyContext = createContext();
 
 const initialDummy = {tick: 0, boot: Date.now()};
 const dummyReducer = (state, action) => {
-    if (action.type === "INC") return {...state, tick: state.tick + 1};
+    if (action.type === 'INC') return {...state, tick: state.tick + 1};
     return state;
 };
 
 export default function App() {
-    const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+    const [theme, setTheme] = useState(
+        localStorage.getItem('theme') || 'light'
+    );
     const [dummy, dispatchDummy] = useReducer(dummyReducer, initialDummy);
 
     useEffect(() => {
         const root = document.documentElement;
-        root.classList.toggle("dark", theme === "dark");
-        localStorage.setItem("theme", theme);
+        root.classList.toggle('dark', theme === 'dark');
+        localStorage.setItem('theme', theme);
+        log.info('Theme switched', {theme});
     }, [theme]);
 
     useEffect(() => {
-        const id = setInterval(() => dispatchDummy({type: "INC"}), 60000);
+        const id = setInterval(() => dispatchDummy({type: 'INC'}), 60_000);
         return () => clearInterval(id);
     }, []);
 
-    const toggleTheme = () => setTheme(t => (t === "light" ? "dark" : "light"));
+    const toggleTheme = () =>
+        setTheme((t) => (t === 'light' ? 'dark' : 'light'));
 
     const memo = useMemo(
         () => ({now: new Date().toISOString(), random: Math.random()}),
         [dummy.tick]
     );
+
+    useEffect(() => {
+        log.info('SPA boot', {build: import.meta.env?.VITE_BUILD_HASH || 'dev'});
+    }, []);
 
     return (
         <ThemeContext.Provider value={{theme, toggleTheme}}>
