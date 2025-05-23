@@ -1,5 +1,7 @@
 package ru.vladuss.informantservice.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
@@ -43,10 +45,11 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory cf) {
-        log.info("Initializing RedisCacheManager (TTL={} min, JSON serializer)", ttlMinutes);
-
-        /* JSON-сериализатор вместо JDK-сериализации */
-        GenericJackson2JsonRedisSerializer json = new GenericJackson2JsonRedisSerializer();
+        ObjectMapper mapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .findAndRegisterModules();
+        GenericJackson2JsonRedisSerializer json =
+                new GenericJackson2JsonRedisSerializer(mapper);
 
         RedisCacheConfiguration cfg = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(ttlMinutes))
@@ -56,6 +59,7 @@ public class CacheConfig {
                         RedisSerializationContext.SerializationPair.fromSerializer(json)
                 );
 
+        log.info("RedisCacheManager initialized (TTL={} min, JSON+JavaTime)", ttlMinutes);
         return RedisCacheManager.builder(cf)
                 .cacheDefaults(cfg)
                 .transactionAware()
@@ -64,23 +68,7 @@ public class CacheConfig {
 
     @Bean
     public SimpleCacheErrorHandler cacheErrorHandler() {
-        return new SimpleCacheErrorHandler() {
-            @Override
-            public void handleCacheGetError(RuntimeException ex,
-                                            org.springframework.cache.Cache cache, Object key) {
-                log.warn("Redis cache GET error ({} → {})", key, ex.getMessage());
-            }
-            @Override
-            public void handleCachePutError(RuntimeException ex,
-                                            org.springframework.cache.Cache cache, Object key, Object val) {
-                log.warn("Redis cache PUT error ({} → {})", key, ex.getMessage());
-            }
-            @Override
-            public void handleCacheEvictError(RuntimeException ex,
-                                              org.springframework.cache.Cache cache, Object key) {
-                log.warn("Redis cache EVICT error ({} → {})", key, ex.getMessage());
-            }
-        };
+        return new SimpleCacheErrorHandler();
     }
 
     @Bean
