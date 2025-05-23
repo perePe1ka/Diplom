@@ -1,13 +1,11 @@
 package ru.vladuss.informantservice.config;
 
-
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.metrics.cache.CacheMetricsRegistrar;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.SimpleCacheErrorHandler;
@@ -17,9 +15,10 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
-import java.util.List;
 
 @Configuration
 @EnableCaching
@@ -44,12 +43,18 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory cf) {
-        log.info("Initializing RedisCacheManager (TTL={} min)", ttlMinutes);
+        log.info("Initializing RedisCacheManager (TTL={} min, JSON serializer)", ttlMinutes);
+
+        /* JSON-сериализатор вместо JDK-сериализации */
+        GenericJackson2JsonRedisSerializer json = new GenericJackson2JsonRedisSerializer();
 
         RedisCacheConfiguration cfg = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(ttlMinutes))
                 .disableCachingNullValues()
-                .prefixCacheNameWith("informant::");
+                .prefixCacheNameWith("informant::")
+                .serializeValuesWith(
+                        RedisSerializationContext.SerializationPair.fromSerializer(json)
+                );
 
         return RedisCacheManager.builder(cf)
                 .cacheDefaults(cfg)
@@ -62,19 +67,17 @@ public class CacheConfig {
         return new SimpleCacheErrorHandler() {
             @Override
             public void handleCacheGetError(RuntimeException ex,
-                                               org.springframework.cache.Cache cache, Object key) {
+                                            org.springframework.cache.Cache cache, Object key) {
                 log.warn("Redis cache GET error ({} → {})", key, ex.getMessage());
             }
-
             @Override
             public void handleCachePutError(RuntimeException ex,
-                                               org.springframework.cache.Cache cache, Object key, Object val) {
+                                            org.springframework.cache.Cache cache, Object key, Object val) {
                 log.warn("Redis cache PUT error ({} → {})", key, ex.getMessage());
             }
-
             @Override
             public void handleCacheEvictError(RuntimeException ex,
-                                                 org.springframework.cache.Cache cache, Object key) {
+                                              org.springframework.cache.Cache cache, Object key) {
                 log.warn("Redis cache EVICT error ({} → {})", key, ex.getMessage());
             }
         };
