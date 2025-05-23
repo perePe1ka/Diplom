@@ -1,20 +1,39 @@
-<configuration>
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder charset="UTF-8">
+      <pattern>
+        <![CDATA[
+                {"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}",
+                 "level":"%level",
+                 "thread":"[%thread]",
+                 "logger":"%logger{36}",
+                 "correlationId":"%X{correlationId}",
+                 "message":"%msg"}
+                %n
+                ]]>
+      </pattern>
+    </encoder>
+  </appender>
+
   <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
     <http>
-      <!-- правильный плейсхолдер с дефолтом "loki" -->
       <url>http://${LOKI_HOST:-loki}:3100/loki/api/v1/push</url>
       <batch>1000</batch>
       <timeoutMs>5000</timeoutMs>
     </http>
     <format>json</format>
-
     <labels>
-      service=${springApplicationName:-app}
+      service=${springApplicationName:-document-generation-service}
       level=%level
+      correlationId=%X{correlationId}
     </labels>
   </appender>
 
   <root level="INFO">
+    <appender-ref ref="STDOUT"/>
     <appender-ref ref="LOKI"/>
   </root>
+
 </configuration>

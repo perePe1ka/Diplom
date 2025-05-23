@@ -7,7 +7,7 @@ import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
-import lombok.extern.slf4j.Slf4j;           // ← логгер
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -16,15 +16,16 @@ import ru.vladuss.documentgeneration.dto.StatementCreateDto;
 import java.io.IOException;
 import java.util.List;
 
-@Slf4j
+
 @Service
 public class GoogleSheetsService {
 
-    private final Sheets  sheets;
-    private final String  sheetId;
+    private final Sheets sheets;
+    private final String sheetId;
+    private final Logger log;
 
     public GoogleSheetsService(@Value("${google.sheet.id}") String sheetId,
-                               @Value("${google.creds}")    Resource credentialsPath) throws Exception {
+                               @Value("${google.creds}") Resource credentialsPath, Logger log) throws Exception {
 
         this.sheetId = sheetId;
 
@@ -42,12 +43,14 @@ public class GoogleSheetsService {
                 .build();
 
         log.info("Google Sheets client ready");
+
+        this.log = log;
     }
 
     private static String sheetName(StatementCreateDto dto) {
         return switch (dto.type()) {
             case TICKET -> "Ticket";
-            case AID    -> "Aid";
+            case AID -> "Aid";
         };
     }
 
