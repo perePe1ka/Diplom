@@ -43,31 +43,18 @@ public class CacheConfig {
     }
 
     @Bean
-    public CacheManager cacheManager(CacheMetricsRegistrar registrar,
-                                     RedisConnectionFactory cf) {
+    public CacheManager cacheManager(RedisConnectionFactory cf) {
+        log.info("Initializing RedisCacheManager (TTL={} min)", ttlMinutes);
 
-        RedisCacheConfiguration cfg = RedisCacheConfiguration
-                .defaultCacheConfig()
+        RedisCacheConfiguration cfg = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(ttlMinutes))
                 .disableCachingNullValues()
                 .prefixCacheNameWith("informant::");
 
-        RedisCacheManager mgr = RedisCacheManager.builder(cf)
+        return RedisCacheManager.builder(cf)
                 .cacheDefaults(cfg)
                 .transactionAware()
                 .build();
-
-        List.of("events", "event", "faqs", "faq")
-                .forEach(name -> {
-                    Cache c = mgr.getCache(name);
-                    if (c != null) {
-                        registrar.bindCacheToRegistry(c);
-                        log.debug("Metrics bound for cache '{}'", name);
-                    }
-                });
-
-        log.info("✅ RedisCacheManager ready (TTL={} min)", ttlMinutes);
-        return mgr;
     }
 
     @Bean
