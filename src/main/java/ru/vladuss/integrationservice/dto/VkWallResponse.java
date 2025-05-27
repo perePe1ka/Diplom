@@ -22,6 +22,7 @@ public class VkWallResponse {
         private String text;
         private Long date;
         private List<Attachment> attachments;
+        private Integer is_pinned;
 
         public Long getId() { return id; }
         public void setId(Long id) { this.id = id; }
@@ -34,6 +35,9 @@ public class VkWallResponse {
 
         public List<Attachment> getAttachments() { return attachments; }
         public void setAttachments(List<Attachment> attachments) { this.attachments = attachments; }
+
+        public Integer getIs_pinned() { return is_pinned; }
+        public void setIs_pinned(Integer is_pinned) { this.is_pinned = is_pinned; }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

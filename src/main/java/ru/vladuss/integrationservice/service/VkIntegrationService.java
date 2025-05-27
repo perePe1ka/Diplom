@@ -103,6 +103,10 @@ public class VkIntegrationService {
         List<SimplePostDto> out = new ArrayList<>(limit);
 
         for (VkWallResponse.Item it : resp.getResponse().getItems()) {
+            if (it.getIs_pinned() != null && it.getIs_pinned() == 1) {
+                continue;
+            }
+
             String text  = Optional.ofNullable(it.getText()).orElse("");
             String photo = extractLargestPhoto(it.getAttachments());
             String date  = LocalDateTime.ofInstant(Instant.ofEpochSecond(it.getDate()), zone).format(fmt);
