@@ -1,4 +1,3 @@
-/* общий контейнер календаря */
 .fc {
     --fc-border-color: #e0e0e0;
     --fc-event-bg-color: #6f41ff;
@@ -11,46 +10,43 @@
     padding: 22px 28px;
     box-shadow: var(--card-shadow);
     transition: background .25s;
+    border: 1px solid var(--fc-border-color);
 }
 
-/* для тёмной темы — более тёмные линии */
-.dark .fc {
+
+html.dark .fc {
     --fc-border-color: #444;
 }
 
-/* границы сетки */
 .fc-theme-standard th,
 .fc-theme-standard td,
 .fc-theme-standard .fc-scrollgrid {
     border: 1px solid var(--fc-border-color);
 }
 
-/* ячейки с днями недели */
 .fc-col-header-cell {
     background: var(--card-bg);
     color: var(--text-light);
 }
 
-.dark .fc-col-header-cell {
+html.dark .fc-col-header-cell {
     background: #2a2a2a;
+    color: #f0f0f0;
 }
 
-/* карточка события */
 .fc-daygrid-event {
     border-radius: 8px;
     font-size: .85rem;
     padding: 2px 4px;
 }
 
-/* адаптив */
-@media (max-width: 700px) {
+@media(max-width:700px) {
     .fc {
         max-width: 100%;
         margin: 20px 0;
         border-radius: 0;
         padding: 15px 8px;
     }
-
     .fc-toolbar-title {
         font-size: 1rem;
     }

@@ -3,8 +3,8 @@ import log from '../observability/logger.js';
 import { incCounter, observeHistogram } from '../observability/metrics.js';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8080',
-    timeout: 10_000,
+    baseURL: import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080',
+    timeout: 100_000,
 });
 
 api.interceptors.request.use((config) => {

@@ -1,69 +1,87 @@
-import {getCLS, getFCP, getFID, getLCP, getTTFB} from 'web-vitals';
+import * as vitals from 'web-vitals';
 
-const MODE= import.meta.env.MODE || 'development';
-const pushUrl = window.__METRICS_PUSH_ENDPOINT__
-    || import.meta.env.VITE_METRICS_PUSH_ENDPOINT
-    || 'http://pushgateway:9091';
-const FLUSH_EVERY = 15_000;
+const MODE = import.meta.env.MODE || 'development';
+const PUSH_ENDPOINT_ENV = import.meta.env.VITE_METRICS_PUSH_ENDPOINT;
+const PUSH_ENDPOINT = PUSH_ENDPOINT_ENV || '';
+const METRICS_DISABLED = MODE !== 'production' || !PUSH_ENDPOINT;
+const FLUSH_INTERVAL_MS = 15_000;
 
-const C = {};
-const S = {};
+const Counters = Object.create(null);
+const Summaries = Object.create(null);
 
-const k = (name, lab={}) => name+JSON.stringify(lab);
+const makeId = (name, labels = {}) => name + JSON.stringify(labels);
 
-export const inc = (name, lab={}, n=1) =>
-    (C[k(name,lab)] = (C[k(name,lab)]||0) + n);
-
-export const observe = (name, val, lab={}) => {
-    const id = k(name,lab);
-    (S[id] = S[id] || []).push(val);
+const _inc = (name, labels = {}, n = 1) => {
+    const id = makeId(name, labels);
+    Counters[id] = (Counters[id] || 0) + n;
+};
+const _observe = (name, value, labels = {}) => {
+    const id = makeId(name, labels);
+    Summaries[id] = Summaries[id] || [];
+    Summaries[id].push(value);
+};
+export const setGauge = (name, value, labels = {}) => {
+    const id = makeId(name, labels);
+    Counters[id] = value;
 };
 
-export const setGauge = (name, val, lab={}) => (C[k(name,lab)] = val);
+export const inc = _inc;
+export const observe = _observe;
+export const incCounter = _inc;
+export const observeHistogram = _observe;
 
-const line = (metric, lab, val) => {
-    const lbl = Object.keys(lab).length
-        ? `{${Object.entries(lab).map(([k,v])=>`${k}="${v}"`).join(',')}}`
+const formatLine = (metric, labels, value) => {
+    const lbl = Object.keys(labels).length
+        ? `{${Object.entries(labels).map(([k, v]) => `${k}="${v}"`).join(',')}}`
         : '';
-    return `${metric}${lbl} ${val}`;
+    return `${metric}${lbl} ${value}`;
 };
 
-function flush(){
+function flush() {
+    if (METRICS_DISABLED) return;
+
     const rows = [];
 
-    for(const [id,val] of Object.entries(C)){
-        const [metric,lbl] = id.match(/^([^{]+)(.*)$/).slice(1);
-        rows.push(line(metric, JSON.parse(lbl), val));
-        delete C[id];
+    for (const [id, val] of Object.entries(Counters)) {
+        const [metric, lblRaw] = id.match(/^([^{]+)(.*)$/).slice(1);
+        const labels = JSON.parse(lblRaw || '{}');
+        rows.push(formatLine(metric, labels, val));
+        delete Counters[id];
     }
 
-    for(const [id,arr] of Object.entries(S)){
-        const [base,lbl] = id.match(/^([^{]+)(.*)$/).slice(1);
-        const lab = JSON.parse(lbl);
-        rows.push(line(`${base}_count`, lab, arr.length));
-        rows.push(line(`${base}_sum`,   lab, arr.reduce((a,b)=>a+b,0)));
-        delete S[id];
+    for (const [id, arr] of Object.entries(Summaries)) {
+        const [base, lblRaw] = id.match(/^([^{]+)(.*)$/).slice(1);
+        const labels = JSON.parse(lblRaw || '{}');
+        rows.push(formatLine(`${base}_count`, labels, arr.length));
+        rows.push(formatLine(`${base}_sum`, labels, arr.reduce((a, b) => a + b, 0)));
+        delete Summaries[id];
     }
 
-    if(rows.length){
-        navigator.sendBeacon(
-            `${pushUrl}/metrics/job/front/instance/${encodeURIComponent(location.hostname)}`,
-            rows.join('\n')
-        );
+    if (rows.length) {
+        try {
+            navigator.sendBeacon(
+                `${PUSH_ENDPOINT}/metrics/job/front/instance/${encodeURIComponent(location.hostname)}`,
+                rows.join('\n')
+            );
+        } catch (e) {
+            console.warn('Metrics flush failed:', e);
+        }
     }
 }
 
-setInterval(flush, FLUSH_EVERY);
+setInterval(flush, FLUSH_INTERVAL_MS);
 addEventListener('beforeunload', flush);
 
-const base = { mode: MODE };
+const baseLabels = {mode: MODE};
+vitals.getCLS(r => observe('web_vitals_cls_seconds', r.value, baseLabels));
+vitals.getFID(r => observe('web_vitals_fid_ms', r.value, baseLabels));
+vitals.getLCP(r => observe('web_vitals_lcp_ms', r.value, baseLabels));
+vitals.getFCP(r => observe('web_vitals_fcp_ms', r.value, baseLabels));
+vitals.getTTFB(r => observe('web_vitals_ttfb_ms', r.value, baseLabels));
 
-getCLS (r=>observe('web_vitals_cls_seconds', r.value, base));
-getFID (r=>observe('web_vitals_fid_ms',      r.value, base));
-getLCP (r=>observe('web_vitals_lcp_ms',      r.value, base));
-getFCP (r=>observe('web_vitals_fcp_ms',      r.value, base));
-getTTFB(r=>observe('web_vitals_ttfb_ms',     r.value, base));
-
-inc('page_view_total', { path: location.pathname });
-
-setGauge('page_timing_dom_ms', performance.timing.domComplete - performance.timing.domLoading, base);
+inc('page_view_total', {path: location.pathname});
+setGauge(
+    'page_timing_dom_ms',
+    performance.timing.domComplete - performance.timing.domLoading,
+    baseLabels
+);
