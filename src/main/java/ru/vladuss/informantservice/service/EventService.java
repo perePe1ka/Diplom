@@ -31,4 +31,6 @@ public interface EventService {
     @Transactional
     @CacheEvict(value = {"events", "event"}, key = "#id", allEntries = false)
     void delete(UUID id);
+
+    List<Event> getAllForExport();
 }

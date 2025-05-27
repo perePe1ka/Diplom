@@ -82,4 +82,11 @@ public class EventServiceImpl implements EventService {
         repo.deleteById(id);
         log.debug("Event id={} deleted", id);
     }
+
+
+    @Override
+    public List<Event> getAllForExport() {
+        log.debug("Fetching ALL events for Export");
+        return repo.findAll();
+    }
 }
