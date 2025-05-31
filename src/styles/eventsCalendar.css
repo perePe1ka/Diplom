@@ -51,3 +51,50 @@ html.dark .fc-col-header-cell {
         font-size: 1rem;
     }
 }
+
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-card {
+    background: #fff;
+    color: #000;
+    padding: 1.5rem;
+    border-radius: 12px;
+    max-width: 520px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    position: relative;
+}
+
+html.dark .modal-card {
+    background: #2f2f2f;
+    color: #f0f0f0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.modal-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: inherit;
+}
+
+.modal-content h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+}
+.modal-content p {
+    margin: 0.25rem 0;
+}
